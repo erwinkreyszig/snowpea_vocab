@@ -1,0 +1,142 @@
+{% extends "base.html" %}]
+
+{% block content %}
+<form class="p-4 p-md-5 border rounded-3 bg-light" method="post" id="save-form">
+    {% csrf_token %}
+    <div class="form-floating mb-3">
+        {{ form.date_added }}
+        {{ form.date_added.label_tag}}
+    </div>
+    <div class="form-floating mb-3">
+        {{ form.word_or_phrase }}
+        {{ form.word_or_phrase.label_tag }}
+    </div>
+    <div class="form-floating mb-3">
+        {{ form.language }}
+        {{ form.language.label_tag }}
+    </div>
+    <div class="form-floating mb-3">
+        {{ form.pronounciation }}
+        {{ form.pronounciation.label_tag }}
+    </div>
+    <div class="form-floating mb-3">
+        {{ form.is_native }}
+        {{ form.is_native.label_tag }}
+    </div>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">Save</button>
+</form>
+
+<div class="modal fade" id="results-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="order-confirm-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-4">
+                    <span class="badge text-bg-success">Results</span>
+                    <span class="badge text-bg-info" id="results-msg"></span>
+                </h1>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-striped" id="history-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center align-middle">Language</th>
+                            <th class="text-center align-middle">Date</th>
+                            <th class="text-center align-middle">Pronounciation</th>
+                            <th class="text-center align-middle">Native?</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-primary" id="ok-btn" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">
+    const token = $("[name=csrfmiddlewaretoken]").val();
+    var form = $("#save-form");
+    var date = form.find("#id_date_added");
+    var saveBtn = form.find("button[type='submit']");
+    var resultsModal = $("#results-modal");
+
+    function clearForm() {
+        date.datepicker('setDate', 'today').datepicker("hide");
+        $("#id_word_or_phrase").val("");
+        $($("#id_language").find("option")[0]).prop("selected", true);
+        $("#id_pronounciation").val("");
+        $($("#id_is_native").find("option")[0]).prop("selected", true);
+        saveBtn.removeClass("disabled");
+    };
+    function showResults(data) {
+        var wordOrPhrase = data["ref_data"]["word_or_phrase"];
+        var pronounciation = data["ref_data"]["pronounciation"];
+        var historyTable = resultsModal.find("#history-table tbody");
+        if (data["created"] == true) {
+            resultsModal.find("#results-msg").empty().text("Record created for '" + wordOrPhrase + "'");
+        }
+        if (data["added"] == true) {
+            resultsModal.find("#results-msg").empty().text("History entry added for '" + wordOrPhrase + "'");
+        }
+        if (data["created"] == false && data["added"] == false) {
+            resultsModal.find("#results-msg").empty().text("'" + pronounciation + "' for '" + wordOrPhrase + "' is already recorded");
+        }
+        var htmlStr = "";
+        for (let i = 0; i < data["history"].length; i++) {
+            var row = data["history"][i];
+            var native = "No";
+            if (row["is_native"]) {
+                native = "Yes";
+            }
+            htmlStr += "" +
+                "<tr>" +
+                    "<td>" + row["language__desc"] + "</td>" +
+                    "<td>" + row["date_added"] + "</td>" +
+                    "<td>" + row["pronounciation"] + "</td>" +
+                    "<td>" + native + "</td>" +
+                "</tr>";
+        }
+        historyTable.empty().append(htmlStr);
+        resultsModal.modal("show");
+    };
+    function saveInput() {
+        saveBtn.addClass("disabled");
+        $.ajax({
+            url: "{% url 'main' %}",
+            type: "POST",
+            data: form.serialize(),
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": token,
+            },
+            success: (data) => {
+                console.log(data);
+                showResults(data);
+                saveBtn.removeClass("disabled");
+            },
+            error: (error) => {
+                console.log(error);
+                saveBtn.removeClass("disabled");
+            }
+        })
+    };
+
+    $(document).ready(function() {
+        date.datepicker({
+            dateFormat: "yy-mm-dd",
+            showAmin: "fadeIn"
+        });
+        form.submit(function(event) {
+            event.preventDefault();
+            saveInput();
+        });
+        resultsModal.on("hide.bs.modal", function() {
+            clearForm();
+        });
+    });
+</script>
+{% endblock %}
