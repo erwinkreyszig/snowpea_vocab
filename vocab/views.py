@@ -84,3 +84,19 @@ def main(request):
         },
     }
     return JsonResponse(resp)
+
+
+@login_required
+def get_word_counts(request):
+    if request.method == "GET":
+        # for now
+        counts = {}
+        for lang_code in ("en", "ja", "fl"):
+            counts[lang_code] = (
+                WordOrPhraseHistory.objects.filter(language__code=lang_code)
+                .values("ref__word_or_phrase")
+                .order_by("ref__word_or_phrase")
+                .distinct()
+                .count()
+            )
+        return JsonResponse(counts)

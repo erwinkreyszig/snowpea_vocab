@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.main, name="main"),
+    path("counts/", views.get_word_counts, name="word-counts"),
 ]
