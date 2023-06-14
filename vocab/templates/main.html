@@ -1,6 +1,13 @@
 {% extends "base.html" %}]
 
 {% block content %}
+<div class="container mb-3">
+    <div class="row">
+        <div class="col-sm">English: <span id="en-count"></span></div>
+        <div class="col-sm">Japanese: <span id="ja-count"></span></div>
+        <div class="col-sm">Tagalog: <span id="fl-count"></span></div>
+    </div>
+</div>
 <form class="p-4 p-md-5 border rounded-3 bg-light" method="post" id="save-form">
     {% csrf_token %}
     <div class="form-floating mb-3">
@@ -124,6 +131,18 @@
             }
         })
     };
+    function updateWordCounts(data) {
+        $("#en-count").empty().text(data["en"]);
+        $("#ja-count").empty().text(data["ja"]);
+        $("#fl-count").empty().text(data["fl"]);
+    };
+    function getWordCounts() {
+        $.get("{% url 'word-counts' %}", function(data) {
+            updateWordCounts(data);
+        }).fail(function(error) {
+            console.log(error);
+        });
+    };
 
     $(document).ready(function() {
         date.datepicker({
@@ -136,7 +155,9 @@
         });
         resultsModal.on("hide.bs.modal", function() {
             clearForm();
+            getWordCounts();
         });
+        getWordCounts();
     });
 </script>
 {% endblock %}
