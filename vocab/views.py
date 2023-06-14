@@ -25,9 +25,9 @@ def main(request):
         )
     # process sent data
     date_added = request.POST["date_added"]
-    word_or_phrase = request.POST["word_or_phrase"]
+    word_or_phrase = request.POST["word_or_phrase"].strip()
     language = request.POST["language"]
-    pronounciation = request.POST["pronounciation"]
+    pronounciation = request.POST["pronounciation"].strip()
     is_native = request.POST["is_native"]
     now = timezone.now()
     created = added = False
