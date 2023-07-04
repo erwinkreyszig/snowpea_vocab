@@ -8,6 +8,19 @@
         <div class="col-sm">Tagalog: <span id="fl-count"></span></div>
     </div>
 </div>
+<div class="container mb-3">
+    <div class="row">
+        <div class="col-sm-9">
+            <div class="form-floating mb-2">
+                <input type="text" name="query" class="form-control" required="" id="id_query">
+                <label for="id_query">Query:</label>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <button type="button" class="btn btn-primary" id="find-btn">Find</button>
+        </div>
+    </div>
+</div>
 <form class="p-4 p-md-5 border rounded-3 bg-light" method="post" id="save-form">
     {% csrf_token %}
     <div class="form-floating mb-3">
@@ -61,6 +74,25 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="msg-modal" tabindex="-1" role="dialog" aria-labelledby="msg-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <!--
+        <div class="modal-header">
+          <h5 class="modal-title" id="msg-modal-title">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        -->
+        <div class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_js %}
@@ -70,6 +102,7 @@
     var date = form.find("#id_date_added");
     var saveBtn = form.find("button[type='submit']");
     var resultsModal = $("#results-modal");
+    var msgModal = $("#msg-modal");
 
     function clearForm() {
         date.datepicker('setDate', 'today').datepicker("hide");
@@ -91,6 +124,9 @@
         }
         if (data["created"] == false && data["added"] == false) {
             resultsModal.find("#results-msg").empty().text("'" + pronounciation + "' for '" + wordOrPhrase + "' is already recorded");
+        }
+        if (data["found"] == true) {
+            resultsModal.find("#results-msg").empty().text("records for '" + wordOrPhrase + "':");
         }
         var htmlStr = "";
         for (let i = 0; i < data["history"].length; i++) {
@@ -143,6 +179,32 @@
             console.log(error);
         });
     };
+    function clearSearchForm() {
+        $("#id_query").val("");
+        $("#id_query #find-btn").removeClass("disabled");
+    };
+    function doQuery() {
+        var queryString = $("#id_query").val().trim();
+        if (queryString == "") {
+            return;
+        }
+        $("#id_query #find-btn").addClass("disabled");
+        $.get("{% url 'find-word' %}", {"query": queryString}).done(function(data) {
+            if (data["created"] == false && data["added"] == false && data["found"] == false) {
+                msgModal.find(".modal-body").empty().text("No records for '" + data["ref_data"]["word_or_phrase"] + '"');
+                msgModal.modal("show");
+            }
+            if (data["found"]) {
+                showResults(data);
+            }
+            $("#id_query #find-btn").removeClass("disabled");
+        }).fail(function(error) {
+            console.log(error);
+            msgModal.find(".modal-body").empty().text("An error occurred");
+            msgModal.modal("show");
+            $("#id_query #find-btn").removeClass("disabled");
+        });
+    };
 
     $(document).ready(function() {
         date.datepicker({
@@ -155,9 +217,14 @@
         });
         resultsModal.on("hide.bs.modal", function() {
             clearForm();
+            clearSearchForm();
             getWordCounts();
         });
+        $("#find-btn").on("click", doQuery);
         getWordCounts();
+        msgModal.on("hide.bs.modal", function() {
+            clearSearchForm();
+        });
     });
 </script>
 {% endblock %}
