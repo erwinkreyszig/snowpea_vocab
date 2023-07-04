@@ -75,6 +75,7 @@ def main(request):
     resp = {
         "created": created,
         "added": added,
+        "found": False,
         "history": list(history),
         "ref_data": {
             "date_added": ref.date_added,
@@ -84,6 +85,34 @@ def main(request):
         },
     }
     return JsonResponse(resp)
+
+
+@login_required
+def find_word(request):
+    if request.method == "GET":
+        query_str = request.GET["query"]
+        if ref := RefWordOrPhrase.objects.filter(word_or_phrase__iexact=query_str).first():
+            history = (
+                WordOrPhraseHistory.objects.filter(ref=ref)
+                .order_by("language", "date_added")
+                .values("date_added", "language__desc", "pronounciation", "is_native")
+            )
+            resp = {
+                "created": False,
+                "added": False,
+                "found": True,
+                "history": list(history),
+                "ref_data": {
+                    "date_added": ref.date_added,
+                    "count": ref.variation_count,
+                    "word_or_phrase": ref.word_or_phrase,
+                    "pronounciation": "",
+                },
+            }
+            return JsonResponse(resp)
+        return JsonResponse(
+            {"created": False, "added": False, "found": False, "ref_data": {"word_or_phrase": query_str}}
+        )
 
 
 @login_required
