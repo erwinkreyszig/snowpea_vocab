@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RefWordOrPhrase, Language, WordOrPhraseHistory
+from .models import RefWordOrPhrase, Language, WordOrPhraseHistory, PartOfSpeech
 
 # Register your models here.
 
@@ -18,7 +18,7 @@ class RefWordOrPhraseAdmin(admin.ModelAdmin):
 @admin.register(Language)
 class LanguageAdmin(admin.ModelAdmin):
     list_display = ("code", "desc")
-    # list_editable = ("code", "desc")
 
 
 admin.site.register(WordOrPhraseHistory)
+admin.site.register(PartOfSpeech)
