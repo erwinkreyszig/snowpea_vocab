@@ -1,20 +1,24 @@
-from vocab.models import PartOfSpeech, Language
+from vocab.models import PartOfSpeech
 
 
 pos = [
-    PartOfSpeech(code="VERB", desc="Verb", languages="en,ja,fl"),
-    PartOfSpeech(code="NOUN", desc="Noun", languages="en,ja,fl"),
-    PartOfSpeech(code="ADJ", desc="Adjective", languages="en,ja,fl"),
-    PartOfSpeech(code="ADV", desc="Adverb", languages="ene,ja,fl"),
-    PartOfSpeech(code="PRON", desc="Pronoun", languages="en,ja,fl"),
-    PartOfSpeech(code="PREP", desc="Preposition", languages="en,fl"),
-    PartOfSpeech(code="CONJ", desc="Conjunction", languages="en,ja,fl"),
-    PartOfSpeech(code="INTR", desc="Interjection", languages="en,ja"),
-    PartOfSpeech(code="ADVR", desc="Adjectival Verb", languages="ja"),
-    PartOfSpeech(code="PART", desc="Particle", languages="ja"),
-    PartOfSpeech(code="AUXV", desc="Auxiliary Verb", languages="ja"),
-    PartOfSpeech(code="ATTR", desc="Attributive", languages="ja"),
-    PartOfSpeech(code="MRKR", desc="Marker", languages="fl"),
+    PartOfSpeech(code="ADJ", desc="adjective"),
+    PartOfSpeech(code="ADP", desc="adposition"),
+    PartOfSpeech(code="ADV", desc="adverb"),
+    PartOfSpeech(code="AUX", desc="auxiliary"),
+    PartOfSpeech(code="CCONJ", desc="coordinating conjunction"),
+    PartOfSpeech(code="DET", desc="determiner"),
+    PartOfSpeech(code="INTJ", desc="interjection"),
+    PartOfSpeech(code="NOUN", desc="noun"),
+    PartOfSpeech(code="NUM", desc="numeral"),
+    PartOfSpeech(code="PART", desc="particle"),
+    PartOfSpeech(code="PRON", desc="pronoun"),
+    PartOfSpeech(code="PROPN", desc="proper noun"),
+    PartOfSpeech(code="PUNCT", desc="punctuation"),
+    PartOfSpeech(code="SCONJ", desc="subordinating conjunction"),
+    PartOfSpeech(code="SYM", desc="symbol"),
+    PartOfSpeech(code="VERB", desc="verb"),
+    PartOfSpeech(code="X", desc="other"),
 ]
 
 PartOfSpeech.objects.bulk_create(pos)
