@@ -4,12 +4,29 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 
+class PartOfSpeech(models.Model):
+    """Lists parts of speech for the languages involved"""
+
+    code = models.CharField(max_length=10, unique=True)
+    desc = models.CharField(max_length=255)
+    languages = models.CharField(max_length=255, default=None, null=True)
+
+    class Meta:
+        ordering = ["code"]
+        verbose_name_plural = "parts of speech"
+
+    def __str__(self):
+        return f"{self.code} - {self.desc} ({self.languages})"
+
+
 class RefWordOrPhrase(models.Model):
     """Model that will hold the reference word or phrase"""
 
     word_or_phrase = models.CharField(max_length=255, unique=True, help_text="What Snowpea likely meant")
     date_added = models.DateTimeField(auto_now_add=True)
     variation_count = models.IntegerField(default=0)
+    part_of_speech = models.ForeignKey(PartOfSpeech, on_delete=models.SET_NULL, null=True, default=None)
+    base = models.ForeignKey("RefWordOrPhrase", on_delete=models.SET_NULL, null=True, default=None)
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
