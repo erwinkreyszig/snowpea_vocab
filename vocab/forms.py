@@ -17,6 +17,9 @@ class MainForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+    pos = forms.CharField(
+        label="Part of Speech", required=True, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
     language = forms.CharField(
         label="Language",
         widget=forms.Select(

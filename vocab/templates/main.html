@@ -32,6 +32,10 @@
         {{ form.word_or_phrase.label_tag }}
     </div>
     <div class="form-floating mb-3">
+        {{ form.pos }}
+        {{ form.pos.label_tag }}
+    </div>
+    <div class="form-floating mb-3">
         {{ form.language }}
         {{ form.language.label_tag }}
     </div>
@@ -47,6 +51,7 @@
 </form>
 
 <div class="modal fade" id="results-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="order-confirm-modal-title" aria-hidden="true">
+    <!-- <div class="modal-dialog modal-fullscreen"> -->
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -78,14 +83,6 @@
 <div class="modal fade" id="msg-modal" tabindex="-1" role="dialog" aria-labelledby="msg-modal-title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
       <div class="modal-content">
-        <!--
-        <div class="modal-header">
-          <h5 class="modal-title" id="msg-modal-title">Modal title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        -->
         <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
@@ -103,13 +100,16 @@
     var saveBtn = form.find("button[type='submit']");
     var resultsModal = $("#results-modal");
     var msgModal = $("#msg-modal");
+    var posQueryRequest = null;
+    var posCheckRequest = null;
 
     function clearForm() {
         date.datepicker('setDate', 'today').datepicker("hide");
-        $("#id_word_or_phrase").val("");
-        $($("#id_language").find("option")[0]).prop("selected", true);
-        $("#id_pronounciation").val("");
-        $($("#id_is_native").find("option")[0]).prop("selected", true);
+        form.find("#id_word_or_phrase").val("");
+        $(form.find("#id_language").find("option")[0]).prop("selected", true);
+        form.find("#id_pronounciation").val("");
+        $(form.find("#id_is_native").find("option")[0]).prop("selected", true);
+        form.find("#id_pos").val("");
         saveBtn.removeClass("disabled");
     };
     function showResults(data) {
@@ -205,6 +205,34 @@
             $("#id_query #find-btn").removeClass("disabled");
         });
     };
+    function getPos() {
+        var ref = form.find("#id_word_or_phrase").val().trim();
+        var langCode = form.find("#id_language").find(":selected").val();  // not sure yet if this will be needed
+        var posField = form.find("#id_pos");
+        if (ref == "") {
+            return;
+        }
+        posField.prop("disabled", true);
+        posQueryRequest = $.get("{% url 'get-pos' %}", {"ref": ref, "lang_code": langCode}).done(function(data) {
+            if (data["code"] != undefined) {
+                posField.val(data["desc"]);
+            }
+            posField.prop("disabled", false);
+        });
+    };
+    function checkEnteredPos() {
+        var posStr = form.find("#id_pos").val().trim();
+        if (posStr == "") {
+            return;
+        }
+        posCheckRequest = $.get("{% url 'check-pos' %}", {"entered_pos": posStr}).done(function(data) {
+            if (data["valid"] == true) {
+                saveBtn.removeClass("disabled");
+            } else {
+                saveBtn.addClass("disabled");
+            }
+        });
+    }
 
     $(document).ready(function() {
         date.datepicker({
@@ -224,6 +252,22 @@
         getWordCounts();
         msgModal.on("hide.bs.modal", function() {
             clearSearchForm();
+        });
+        form.find("#id_word_or_phrase").on("blur", function() {
+            if (posQueryRequest != null && posQueryRequest.state() == "pending") {
+                posQueryRequest.abort();
+                posQueryRequest = null;
+                $("#id_pos").val("");
+                console.log("get pos request aborted for: " + $("#id_word_or_phrase").val().trim());
+            }
+            getPos();
+        });
+        form.find("#id_pos").on("blur", function() {
+            if (posCheckRequest != null && posCheckRequest.state() == "pending") {
+                posCheckRequest.abort();
+                posCheckRequest = null;
+            }
+            checkEnteredPos();
         });
     });
 </script>
