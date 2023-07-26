@@ -11,12 +11,16 @@ class WordOrPhraseHistoryInline(admin.TabularInline):
 
 @admin.register(RefWordOrPhrase)
 class RefWordOrPhraseAdmin(admin.ModelAdmin):
-    list_display = ("word_or_phrase", "pos_desc", "date_added", "variation_count")
+    list_display = ("word_or_phrase", "pos_desc", "base_ref", "date_added", "variation_count")
     inlines = [WordOrPhraseHistoryInline]
 
     @admin.display(empty_value="---")
     def pos_desc(self, obj):
         return obj.part_of_speech.desc if obj.part_of_speech else "---"
+
+    @admin.display(empty_value="---")
+    def base_ref(self, obj):
+        return obj.base.word_or_phrase if obj.base else "---"
 
 
 @admin.register(Language)
