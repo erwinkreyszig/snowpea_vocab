@@ -22,15 +22,16 @@ class PartOfSpeech(models.Model):
 class RefWordOrPhrase(models.Model):
     """Model that will hold the reference word or phrase"""
 
-    word_or_phrase = models.CharField(max_length=255, unique=True, help_text="What Snowpea likely meant")
+    word_or_phrase = models.CharField(max_length=255, help_text="What Snowpea likely meant")
     date_added = models.DateTimeField(auto_now_add=True)
     variation_count = models.IntegerField(default=0)
     part_of_speech = models.ForeignKey(PartOfSpeech, on_delete=models.SET_NULL, null=True, default=None)
-    base = models.ForeignKey("RefWordOrPhrase", on_delete=models.SET_NULL, null=True, default=None)
+    base = models.ForeignKey("RefWordOrPhrase", on_delete=models.SET_NULL, null=True, default=None, blank=True)
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         ordering = ["word_or_phrase"]
+        unique_together = ("word_or_phrase", "part_of_speech")
 
     def __str__(self):
         return f"{self.word_or_phrase} - {self.date_added} ({self.variation_count})"

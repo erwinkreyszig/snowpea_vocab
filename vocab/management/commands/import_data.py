@@ -29,6 +29,7 @@ class Command(BaseCommand):
         pos_dict = {pos.desc.lower(): pos for pos in PartOfSpeech.objects.all()}
 
         for row in data:
+            print(row)
             username = row["added_by_user"].strip().lower()
             date_added = row["date_added"].strip()
             date_added_naive = datetime.strptime(date_added.split("+", 1)[0], DT_FORMAT)
